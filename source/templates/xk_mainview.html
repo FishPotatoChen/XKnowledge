@@ -3,243 +3,7 @@
 {% block head %}
     <script src="static/echarts.js"></script>
     <script src="static/jquery.js"></script>
-    <script>
-        function highlight(dataIndex, dataType) {
-            // 高亮，根据数据类型和位置来高亮
-            chartInstance.dispatchAction({
-                type: "highlight",
-                seriesIndex: 0,
-                dataType: dataType,
-                dataIndex: dataIndex
-            });
-        }
-
-        function downplayByName(name) {
-            // 解除节点高亮，有时节点无法知道自己的index
-            chartInstance.dispatchAction({
-                type: "downplay",
-                seriesIndex: 0,
-                dataType: "node",
-                name: name
-            });
-        }
-
-        function downplay(dataIndex, dataType) {
-            // 解除高亮，根据数据类型和位置来解除
-            chartInstance.dispatchAction({
-                type: "downplay",
-                seriesIndex: 0,
-                dataType: dataType,
-                dataIndex: dataIndex
-            });
-        }
-
-        function downplayAll(highlightNodeList) {
-            // 解除全部节点的高亮
-            for (let i = 0; i < highlightNodeList.length; i++) {
-                downplayByName(highlightNodeList[i]);
-            }
-        }
-
-        function sendData(formData, chart) {
-            // 发送数据到后端
-            if (chart === undefined) {
-                fetch("{{ url_for("XKnowledge.XKMainView") }}", {
-                    method: "POST",
-                    body: formData // 将FormData对象作为请求体发送
-                });
-            } else {
-                fetch("{{ url_for("XKnowledge.XKMainView") }}", {
-                    method: "POST",
-                    body: formData // 将FormData对象作为请求体发送
-                }).then(response => {
-                    return response.json();
-                }).then(data => {
-                    chart.setOption(createOption(data));
-                });
-            }
-        }
-
-        function createOption(jsonData) {
-            let option = {
-                // 图的标题
-                title: {
-                    text: jsonData.title
-                },
-                // 提示框的配置
-                tooltip: {
-                    formatter: function (x) {
-                        return x.data.des;
-                    }
-                },
-                // 工具箱
-                toolbox: {
-                    // 显示工具箱
-                    show: true,
-                    feature: {
-                        mark: {
-                            show: true
-                        },
-                        // 还原
-                        restore: {
-                            show: true
-                        },
-                        // 保存为图片
-                        saveAsImage: {
-                            show: true
-                        }
-                    }
-                },
-                legend: [{
-                    // selectedMode: "single",
-                    data: jsonData.categories.map(function (a) {
-                        return a.name;
-                    })
-                }],
-                graphic: [
-                    {
-                        type: "text",
-                        left: "center",
-                        bottom: "5%",
-                        style: {
-                            fill: "rgba(0,0,0,1)",
-                            text: "By XKnowledge",
-                            font: "bold 18px sans-serif"
-                        }
-                    }
-                ],
-                series: [{
-                    type: "graph", // 类型:关系图
-                    layout: "force", //图的布局，类型为力导图
-                    //symbolSize: 40, // 调整节点的大小
-                    roam: true, // 是否开启鼠标缩放和平移漫游。默认不开启。如果只想要开启缩放或者平移,可以设置成 "scale" 或者 "move"。设置成 true 为都开启
-                    // edgeSymbol: ["circle", "arrow"],
-                    //edgeSymbolSize: [2, 10],
-                    //edgeLabel: {
-                    //    normal: {
-                    //        textStyle: {
-                    //            fontSize: 20
-                    //        }
-                    //    }
-                    //},
-                    force: {
-                        repulsion: 2500,
-                        edgeLength: [10, 50]
-                    },
-                    draggable: true, // 元素是否可以被拖动
-                    // 边的风格
-                    lineStyle: {
-                        normal: {
-                            width: 2,
-                            color: "#4b565b",
-                        }
-                    },
-                    // 边上显示当前边的名称
-                    edgeLabel: {
-                        normal: {
-                            show: true,
-                            formatter: function (x) {
-                                return x.data.name;
-                            }
-                        }
-                    },
-                    // 节点上显示当前节点名称
-                    label: {
-                        normal: {
-                            show: true,
-                            textStyle: {}
-                        }
-                    },
-                    // 高亮时节点外层增加黑色边缘
-                    emphasis: {
-                        disable: true,
-                        itemStyle: {
-                            borderColor: "#000",
-                            borderWidth: 2,
-                            borderType: "solid"
-                        },
-                        lineStyle: {
-                            color: "#000",
-                            width: 5,
-                        }
-                    },
-                    // 数据
-                    data: jsonData.data,
-                    links: jsonData.links,
-                    categories: jsonData.categories,
-                }]
-            };
-            return option;
-        }
-
-        class HighlightClass {
-            constructor() {
-                this.highlightNodeList = []; // 记录旧的高亮节点
-                this.highlightEdge = undefined;
-            }
-
-            addNode(name, dataIndex) {
-                const pos = this.highlightNodeList.indexOf(name);
-                if (pos !== -1 && this.highlightNodeList.length !== 0) {
-                    // 当重复点击节点的时候，将节点高亮去掉，并且更新highlightNodeList
-                    if (this.highlightNodeList.length === 1) {
-                        downplay(dataIndex, "node");
-                        this.highlightNodeList = [];
-                    } else {
-                        downplay(dataIndex, "node");
-                        this.highlightNodeList = [this.highlightNodeList[(pos + 1) % 2]];// 取pos对应的另一个节点
-                    }
-                } else {
-                    if (this.highlightNodeList.length < 2) {
-                        // 点击第一个节点时，高亮点击的那个节点，点击第二个节点时，高亮新点击的节点
-                        this.highlightNodeList[this.highlightNodeList.length] = name;
-                        highlight(dataIndex, "node");
-                    } else {
-                        // 点击第三个节点时，将第一个节点高亮取消，并把第二个节点放到第一个位置上，为了后面的有向链接做准备
-                        downplayByName(this.highlightNodeList[0]);
-                        highlight(dataIndex, "node");
-                        this.highlightNodeList[0] = this.highlightNodeList[1];
-                        this.highlightNodeList[1] = name;
-
-                    }
-                    console.log(this.highlightNodeList);
-                }
-            }
-
-            addEdge(data, dataIndex) {
-                if (this.highlightEdge === undefined) {
-                    // 如果边没有初始化，就初始化
-                    this.highlightEdge = {data: data, dataIndex: dataIndex};
-                } else {
-                    // 如果边初始化了，就将旧的边解除高亮
-                    downplay(this.highlightEdge.dataIndex, "edge");
-                    this.highlightEdge = {data: data, dataIndex: dataIndex};
-                }
-                highlight(dataIndex, "edge");
-            }
-
-            reset() {
-                downplayAll(this.highlightNodeList);
-                this.highlightNodeList = [];
-                if (this.highlightEdge !== undefined) {
-                    downplay(this.highlightEdge.dataIndex, "edge");
-                }
-                this.highlightEdge = undefined;
-            }
-
-            resetNode() {
-                downplayAll(this.highlightNodeList);
-                this.highlightNodeList = [];
-            }
-
-            resetEdge() {
-                if (this.highlightEdge !== undefined) {
-                    downplay(this.highlightEdge.dataIndex, "edge");
-                    this.highlightEdge = undefined;
-                }
-            }
-        }
-    </script>
+    <script src="static/xk_mainview.js"></script>
 {% endblock %}
 
 
@@ -293,7 +57,7 @@
             chartInstance.on("click", function (event) {
                 console.log(event);
                 if (event.dataType === "node") {
-                    highlightInstance.addNode(event.name, event.dataIndex);
+                    highlightInstance.addNode(chartInstance, event.name, event.dataIndex);
                     if (highlightInstance.highlightNodeList.length === 2 && dialogCreateNode.style.display === "block") {
                         // 当前已经打开了增加节点的输入框，将输入框关闭
                         dialogCreateNode.style.display = "none";
@@ -305,14 +69,14 @@
                         alert("增加边时要同时选择两个节点");
                     }
                 } else if (event.dataType === "edge") {
-                    highlightInstance.addEdge(event.data, event.dataIndex)
+                    highlightInstance.addEdge(chartInstance, event.data, event.dataIndex)
                 }
             });
 
             chartInstance.getZr().on("click", function (event) {
                 // 没有 target 意味着鼠标/指针不在任何一个图形元素上，它是从“空白处”触发的。
                 if (!event.target) {
-                    highlightInstance.reset();
+                    highlightInstance.reset(chartInstance);
                     if (dialogCreateEdge.style.display === "block") {
                         // 当前已经打开了增加边地输入框，将输入框关闭
                         dialogCreateEdge.style.display = "none";
@@ -338,7 +102,7 @@
                 dialogCreateEdge.style.display = "none";
                 if (highlightInstance.highlightNodeList.length === 2) {
                     // 点击创建节点的时候，发现高亮了两个节点，就将全部高亮节点取消
-                    highlightInstance.resetNode();
+                    highlightInstance.resetNode(chartInstance);
                     dialogCreateNode.style.display = "none";
                     alert("增加节点时不能同时选择两个节点");
                 } else {
@@ -356,7 +120,7 @@
                 dialogCreateNode.style.display = "none"; // 当表单提交时，关闭弹窗
                 if (highlightInstance.highlightNodeList.length === 2) {
                     // 点击创建节点的时候，发现高亮了两个节点，就将全部高亮节点取消
-                    highlightInstance.resetNode();
+                    highlightInstance.resetNode(chartInstance);
                     alert("增加节点时不能同时选择两个节点");
                 } else {
                     // 创建节点的时候先检测所有的节点名称，是否重名
@@ -378,7 +142,7 @@
                         }));
                         sendData(formData, chartInstance);
                     }
-                    highlightInstance.reset();
+                    highlightInstance.reset(chartInstance);
                 }
             });
 
@@ -408,7 +172,7 @@
                     des: this.elements['edgeDescribeField'].value
                 }));
                 sendData(formData, chartInstance);
-                highlightInstance.reset();
+                highlightInstance.reset(chartInstance);
             });
 
             document.getElementById("buttonDeleteNode").addEventListener("click", function (event) {
@@ -417,7 +181,7 @@
                 formData.append("highlightNode", JSON.stringify(highlightInstance.highlightNodeList));
                 formData.append("deleteNode", 1);
                 sendData(formData, chartInstance);
-                highlightInstance.resetNode();
+                highlightInstance.resetNode(chartInstance);
                 // window.location.reload()
             });
 
@@ -427,7 +191,7 @@
                     formData.append("highlightLink", JSON.stringify(highlightInstance.highlightEdge));
                     formData.append("deleteLink", 1);
                     sendData(formData, chartInstance);
-                    highlightInstance.resetEdge();
+                    highlightInstance.resetEdge(chartInstance);
                 }
                 // window.location.reload();
             });
