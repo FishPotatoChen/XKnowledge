@@ -1,9 +1,9 @@
 <template>
   <a-form>
-    <a-form-item label="名称">
+    <a-form-item label="名称" :style="sideBarStyle">
       <a-textarea v-model:value="currentEdge.name" />
     </a-form-item>
-    <a-form-item label="描述">
+    <a-form-item label="描述" :style="sideBarStyle">
       <a-textarea v-model:value="currentEdge.des" />
     </a-form-item>
     <a-form-item>
@@ -17,6 +17,7 @@ import { jsonReactive } from '../utils/XkUtils'
 
 const currentEdge = defineModel('currentEdge')
 const currentEdgeDataIndex = defineModel('currentEdgeDataIndex')
+const sideBarStyle = defineModel('sideBarStyle')
 
 const xkContext = defineModel('xkContext')
 

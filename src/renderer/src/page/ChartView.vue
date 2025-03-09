@@ -65,6 +65,7 @@
                         v-model:categoryItems="categoryItems"
                         v-model:categoryName="categoryName"
                         v-model:currentNode="currentNode"
+                        v-model:sideBarStyle="sideBarStyle"
 
                         v-model:xkContext="xkContext"></XkCreateNode>
 
@@ -73,18 +74,21 @@
                          v-model:categoryItems="categoryItems"
                          v-model:categoryName="categoryName"
                          v-model:currentNodeDataIndex="currentNodeDataIndex"
+                         v-model:sideBarStyle="sideBarStyle"
 
                          v-model:xkContext="xkContext"></XkCurrentNode>
 
           <XkCreateEdge v-show="createEdgeVisible"
                         v-model:newEdge="newEdge"
                         v-model:highlightNodeList="highlightNodeList"
+                        v-model:sideBarStyle="sideBarStyle"
 
                         v-model:xkContext="xkContext"></XkCreateEdge>
 
           <XkCurrentEdge v-show="currentEdgeVisible"
                          v-model:currentEdge="currentEdge"
                          v-model:currentEdgeDataIndex="currentEdgeDataIndex"
+                         v-model:sideBarStyle="sideBarStyle"
 
                          v-model:xkContext="xkContext"></XkCurrentEdge>
 
@@ -498,7 +502,7 @@ const clickChart = event => {
   }
 
   if (!siderVisible.value) {
-    switchSider()
+    toggleSider()
   }
 }
 
@@ -518,7 +522,7 @@ const resizeChart = () => {
   chartInstance.resize()
 }
 
-const switchSider = () => {
+const toggleSider = () => {
   // 当侧边栏收起的时候，直接点击图表，就回唤起侧边栏，这种情况下不能清空侧壁栏
   siderVisible.value = !siderVisible.value // 切换侧边栏的显示状态
   echartsWidth.value = siderVisible.value ? `calc(100vw - ${270}px)` : '100vw'
@@ -526,13 +530,13 @@ const switchSider = () => {
   nextTick(resizeChart)
 }
 
-const toggleSider = () => {
+const sidebar = () => {
   /**
    * 显示或者关闭侧边栏
    */
   const SIDER_WIDTH = 270
   const wasAttributeVisible = attributeVisible.value
-  switchSider()
+  toggleSider()
   // 如果是从打开到收起，一定会清空图表
   // 如果是从收起到打开，应该打开attributeVisible，同样清空图表
   resetRefData()
@@ -857,7 +861,7 @@ const buttonList = ref([
   { src: DeleteNodeIcon, name: '删除节点', click: deleteNode },
   { src: CreateEdgeIcon, name: '创建连接', click: createEdge },
   { src: DeleteEdgeIcon, name: '删除连接', click: deleteEdge },
-  { src: EditIcon, name: '编辑框', click: toggleSider }
+  { src: EditIcon, name: '编辑框', click: sidebar }
 ])
 
 const contentStyle = {
@@ -867,6 +871,10 @@ const contentStyle = {
   backgroundColor: '#ffffff',
   width: echartsWidth.value
   // height: "calc(100vh - 86px)"
+}
+
+const sideBarStyle = {
+  margin: '10px 10px 10px 10px'
 }
 
 </script>

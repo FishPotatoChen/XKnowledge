@@ -1,13 +1,13 @@
 <template>
   <a-form>
-    <a-form-item label="名称">
+    <a-form-item label="名称" :style="sideBarStyle">
       <a-textarea v-model:value="currentNode.name" />
     </a-form-item>
-    <a-form-item label="描述">
+    <a-form-item label="描述" :style="sideBarStyle">
       <a-textarea v-model:value="currentNode.des" />
     </a-form-item>
-    <a-form-item label="所属类目">
-      <a-select v-model:value="currentNode.category" placeholder="请选择类目" style="width: 200px"
+    <a-form-item label="所属类目" :style="sideBarStyle">
+      <a-select v-model:value="currentNode.category" placeholder="请选择类目" style="width: 175px"
                 :options="categoryItems.map(item => ({ value: item }))">
         <template #dropdownRender="{ menuNode: menu }">
           <v-nodes :vnodes="menu" />
@@ -24,7 +24,7 @@
         </template>
       </a-select>
     </a-form-item>
-    <a-form-item label="节点大小">
+    <a-form-item label="节点大小" :style="sideBarStyle">
       <a-input-number v-model:value="currentNode.symbolSize" :min="1" :max="100" />
     </a-form-item>
     <a-form-item>
@@ -41,6 +41,7 @@ const currentNode = defineModel('currentNode')
 const categoryItems = defineModel('categoryItems')
 const categoryName = defineModel('categoryName')
 const currentNodeDataIndex = defineModel('currentNodeDataIndex')
+const sideBarStyle = defineModel('sideBarStyle')
 
 const xkContext = defineModel('xkContext')
 
