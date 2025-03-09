@@ -259,11 +259,9 @@ const initChartData = () => {
     'feature': {
       // 保存为图片
       'saveAsImage': {
-        'show': true
+        'name': 'XKnowledge',
       },
-      'restore': {
-        'show': true
-      }
+      'restore': {}
     }
   }
 
